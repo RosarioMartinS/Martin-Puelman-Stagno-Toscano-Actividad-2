@@ -22,9 +22,14 @@ def ingresa_visita(persona):
     """Guarda los datos de una persona al ingresar"""
     conn = sqlite3.connect('recepcion.db')
 
-    q = f"""SELECT dni FROM personas WHERE dni = '{persona.dni}'"""
-
-    resu = conn.execute(q)
+    q = f"""SELECT dni FROM personas   
+            WHERE dni = '{persona.dni}'"""
+            
+    y=f"""SELECT dni FROM ingreso_egreso
+            WHERE dni = '{persona.dni}'"""
+            
+    fecha= datetime.datetime.now().replace(microsecond=0).isoformat()
+    resu = conn.execute(q,y)
 
     if resu.fetchone():
         print("ya existe")
@@ -34,8 +39,14 @@ def ingresa_visita(persona):
                         '{persona.nombre}',
                         '{persona.apellido}',
                         '{persona.movil}');"""
-        print(q)
-        conn.execute(q)
+                        
+        y = f"""INSERT INTO ingreso_egreso (dni, fechahora_in, destino)
+                VALUES ('{persona.dni}',
+                        '{fecha}',
+                        '{p}');"""
+        
+        print(q,y)
+        conn.execute(q, y)
         conn.commit()
     conn.close()
     
@@ -60,7 +71,21 @@ def lista_visitantes_en_institucion ():
 
 def busca_vistantes(fecha_desde, fecha_hasta, destino, dni):
     """ busca visitantes segun criterios """
-    pass
+    conn = sqlite3.connect('recepcion.db')
+    
+    q = f"""SELECT dni FROM personas 
+    INNER JOIN ingresos_egresos ON personas.dni = ingresos_egresos.dni 
+    WHERE dni = '{dni}' AND fechahora_in='{fecha_desde}'AND fechahora_out=NULL AND destino=NULL
+ """
+
+    # INNER JOIN ingresos_egresos ON personas.dni = ingresos_egresos.dni
+    
+    resu = conn.execute(q)
+    if resu.fetchone():
+        print(q)
+         
+    
+    conn.close()
 
 
 def iniciar():
@@ -93,13 +118,10 @@ def iniciar():
 if __name__ == '__main__':
     iniciar()
 
-    """
     p = Persona('28123456', 'Álavarez', 'Ana', '02352-456789')
 
     ingresa_visita(p)
-    """
-    
-    """
+
     doc = input("Igrese dni> ")
     apellido = input("Igrese apellido> ")
     nombre = input("nombre> ")
@@ -108,7 +130,6 @@ if __name__ == '__main__':
     p = Persona(doc, apellido, nombre, movil)
     
     ingresa_visita(p)
-    """
     
     # lista_visitantes_en_institucion()
     
