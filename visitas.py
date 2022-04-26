@@ -1,5 +1,61 @@
 import sqlite3
 import datetime
+"""
+Cada persona que ingresa debe quedar registrada con:
+
+apellido y nombre
+dni
+fecha y hora de ingreso (en formato ISO8601 básico  ej. 20220414T0913 → 14 de abril de 2022 a las 9 horas, 13 minutos)
+teléfono móvil 
+destino (a qué oficina se dirige: rectoría, secretaría, tesorería, etc.)
+
+
+En la base de datos existen dos tablas:
+
+—------------------------
+personas
+—------------------------
+dni	
+apellido
+nombre
+movil
+
+
+—------------------------
+ingresos_egresos
+—------------------------
+id
+dni
+fechahora_in
+fechahora_out
+destino
+
+
+Si la persona que ingresa ya tiene registrado su DNI (ej. un docente) no es necesario cargar los datos.
+
+Al retirarse, utilizando el DNI se registra fecha y hora de egreso (en formato ISO8601 básico  ej. 20220414T0913)
+
+Completar el módulo con las siguientes funciones:
+
+ingresa_visita(persona)
+
+Guarda los datos de una persona al ingresar
+
+
+egresa_visita (dni)
+Coloca fecha y hora de egreso al visitante con dni dado
+
+
+lista_visitantes_en_institucion ()
+
+Devuelve una lista de objetos Persona presentes en la institución 
+
+ 
+busca_vistantes(fecha_desde, fecha_hasta, destino, dni)
+
+Devuelve una lista de objetos Persona de acuerdo a uno o varios criterios (rango de fechas, a qué ámbito ingresó y/o dni)
+
+"""
 
 """
 datetime.datetime.now().replace(microsecond=0).isoformat()
@@ -21,6 +77,7 @@ class Persona:
 def ingresa_visita(persona):
     """Guarda los datos de una persona al ingresar"""
     conn = sqlite3.connect('recepcion.db')
+    
 
     q = f"""SELECT dni FROM personas   
             WHERE dni = '{persona.dni}'"""
@@ -64,9 +121,9 @@ def lista_visitantes_en_institucion ():
 
     resu = conn.execute(q)
     
-    for fila in resu:
+    for fila in resu:       # Imprime las consultas
         print(fila)
-    conn.close()
+    conn.close()        
 
 
 def busca_vistantes(fecha_desde, fecha_hasta, destino, dni):
@@ -76,7 +133,7 @@ def busca_vistantes(fecha_desde, fecha_hasta, destino, dni):
     q = f"""SELECT dni FROM personas 
     INNER JOIN ingresos_egresos ON personas.dni = ingresos_egresos.dni 
     WHERE dni = '{dni}' AND fechahora_in='{fecha_desde}'AND fechahora_out=NULL AND destino=NULL
- """
+    """
 
     # INNER JOIN ingresos_egresos ON personas.dni = ingresos_egresos.dni
     
