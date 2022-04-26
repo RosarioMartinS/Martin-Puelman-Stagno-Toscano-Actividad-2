@@ -2,6 +2,63 @@ import sqlite3
 import datetime
 
 """
+Cada persona que ingresa debe quedar registrada con:
+
+apellido y nombre
+dni
+fecha y hora de ingreso (en formato ISO8601 básico  ej. 20220414T0913 → 14 de abril de 2022 a las 9 horas, 13 minutos)
+teléfono móvil 
+destino (a qué oficina se dirige: rectoría, secretaría, tesorería, etc.)
+
+
+En la base de datos existen dos tablas:
+
+—------------------------
+personas
+—------------------------
+dni    
+apellido
+nombre
+movil
+
+
+—------------------------
+ingresos_egresos
+—------------------------
+id
+dni
+fechahora_in
+fechahora_out
+destino
+
+
+Si la persona que ingresa ya tiene registrado su DNI (ej. un docente) no es necesario cargar los datos.
+
+Al retirarse, utilizando el DNI se registra fecha y hora de egreso (en formato ISO8601 básico  ej. 20220414T0913)
+
+Completar el módulo con las siguientes funciones:
+
+ingresa_visita(persona)
+
+Guarda los datos de una persona al ingresar
+
+
+egresa_visita (dni)
+Coloca fecha y hora de egreso al visitante con dni dado
+
+
+lista_visitantes_en_institucion ()
+
+Devuelve una lista de objetos Persona presentes en la institución 
+
+ 
+busca_vistantes(fecha_desde, fecha_hasta, destino, dni)
+
+Devuelve una lista de objetos Persona de acuerdo a uno o varios criterios (rango de fechas, a qué ámbito ingresó y/o dni)
+
+"""
+
+"""
 datetime.datetime.now().replace(microsecond=0).isoformat()
 
 devuelve fecha hora actual en formato ISO8601 simple
