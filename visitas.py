@@ -74,6 +74,7 @@ class Persona:
         self.movil= movil
 
 
+
 def ingresa_visita(persona):
     """Guarda los datos de una persona al ingresar"""
     conn = sqlite3.connect('recepcion.db')
@@ -82,11 +83,10 @@ def ingresa_visita(persona):
     q = f"""SELECT dni FROM personas   
             WHERE dni = '{persona.dni}'"""
             
-    y=f"""SELECT dni FROM ingreso_egreso
-            WHERE dni = '{persona.dni}'"""
             
     fecha= datetime.datetime.now().replace(microsecond=0).isoformat()
-    resu = conn.execute(q,y)
+    resu = conn.execute(q)
+    
 
     if resu.fetchone():
         print("ya existe")
@@ -97,16 +97,21 @@ def ingresa_visita(persona):
                         '{persona.apellido}',
                         '{persona.movil}');"""
                         
-        y = f"""INSERT INTO ingreso_egreso (dni, fechahora_in, destino)
+        
+        
+        print(q)
+        conn.execute(q)
+        
+    m = f"""INSERT INTO ingresos_egresos (dni, fechahora_in, destino)
                 VALUES ('{persona.dni}',
                         '{fecha}',
                         '{p}');"""
-        
-        print(q,y)
-        conn.execute(q, y)
-        conn.commit()
+    print(m)
+    conn.execute(m)
+    conn.commit()
+                        
     conn.close()
-    
+
 
 def egresa_visita (dni):
     """Coloca fecha y hora de egreso al visitante con dni dado"""
@@ -117,7 +122,9 @@ def lista_visitantes_en_institucion ():
     """Devuelve una lista de objetos Persona presentes en la institución"""
     
     conn = sqlite3.connect('recepcion.db')
-    q = f"""SELECT * FROM personas;"""
+    q = f"""SELECT * FROM personas
+            INNER JOIN ingresos_egresos ON personas.dni = ingresos_egresos.dni 
+            WHERE fechahora_out IS NULL;"""
 
     resu = conn.execute(q)
     
