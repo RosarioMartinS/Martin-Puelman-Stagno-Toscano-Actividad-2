@@ -101,11 +101,11 @@ def ingresa_visita(persona):
         
         print(q)
         conn.execute(q)
-        
+    destino=str(input("¿Hacia dónde se dirige?: "))     
     m = f"""INSERT INTO ingresos_egresos (dni, fechahora_in, destino)
                 VALUES ('{persona.dni}',
                         '{fecha}',
-                        '{p}');"""
+                        '{destino}');"""
     print(m)
     conn.execute(m)
     conn.commit()
