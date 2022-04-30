@@ -115,7 +115,21 @@ def ingresa_visita(persona):
 
 def egresa_visita (dni):
     """Coloca fecha y hora de egreso al visitante con dni dado"""
-    pass
+
+    conn = sqlite3.connect('recepcion.db')
+    q = f"""SELECT fechahora_out FROM ingresos_egresos WHERE dni LIKE '{dni}'"""
+    resu = conn.execute(q)
+
+    fecha_y_hora_actual = datetime.datetime.now().replace(microsecond=0).isoformat()
+
+    if resu.fetchone() != None:
+        print("El usuario ya egresó")
+    else:
+        conn.execute(f"""UPDATE ingresos_egresos
+                SET fechahora_out = ?
+                WHERE dni = ? ;""", (fecha_y_hora_actual, dni))
+        conn.commit()
+    conn.close()
 
 
 def lista_visitantes_en_institucion ():
