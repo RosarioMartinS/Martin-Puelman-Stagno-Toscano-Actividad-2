@@ -1,6 +1,5 @@
 import sqlite3
 import datetime
-
 """
 Cada persona que ingresa debe quedar registrada con:
 
@@ -16,7 +15,7 @@ En la base de datos existen dos tablas:
 —------------------------
 personas
 —------------------------
-dni    
+dni	
 apellido
 nombre
 movil
@@ -75,13 +74,19 @@ class Persona:
         self.movil= movil
 
 
+
 def ingresa_visita(persona):
     """Guarda los datos de una persona al ingresar"""
     conn = sqlite3.connect('recepcion.db')
+    
 
-    q = f"""SELECT dni FROM personas WHERE dni = '{persona.dni}'"""
-
+    q = f"""SELECT dni FROM personas   
+            WHERE dni = '{persona.dni}'"""
+            
+            
+    fecha= datetime.datetime.now().replace(microsecond=0).isoformat()
     resu = conn.execute(q)
+    
 
     if resu.fetchone():
         print("ya existe")
@@ -91,33 +96,89 @@ def ingresa_visita(persona):
                         '{persona.nombre}',
                         '{persona.apellido}',
                         '{persona.movil}');"""
-        print(q)
-        conn.execute(q)
-        conn.commit()
-    conn.close()
     
+        conn.execute(q)
+        
+    m = f"""INSERT INTO ingresos_egresos (dni, fechahora_in, destino)
+                VALUES ('{persona.dni}',
+                        '{fecha}');"""
+
+    conn.execute(m)
+    conn.commit()
+                        
+    conn.close()
+
 
 def egresa_visita (dni):
     """Coloca fecha y hora de egreso al visitante con dni dado"""
-    pass
+
+    conn = sqlite3.connect('recepcion.db')
+    q = f"""SELECT fechahora_out FROM ingresos_egresos WHERE dni LIKE '{dni}'"""
+    resu = conn.execute(q)
+
+    fecha_y_hora_actual = datetime.datetime.now().replace(microsecond=0).isoformat()
+
+    if resu.fetchone() != None:
+        print("El usuario ya egresó")
+    else:
+        conn.execute(f"""UPDATE ingresos_egresos
+                SET fechahora_out = ?
+                WHERE dni = ? ;""", (fecha_y_hora_actual, dni))
+        conn.commit()
+    conn.close()
 
 
 def lista_visitantes_en_institucion ():
     """Devuelve una lista de objetos Persona presentes en la institución"""
     
     conn = sqlite3.connect('recepcion.db')
-    q = f"""SELECT * FROM personas;"""
+    q = f"""SELECT * FROM personas
+            INNER JOIN ingresos_egresos ON personas.dni = ingresos_egresos.dni 
+            WHERE fechahora_out IS NULL;"""
 
     resu = conn.execute(q)
     
-    for fila in resu:
+    for fila in resu:       # Imprime las consultas
         print(fila)
-    conn.close()
+    conn.close()        
 
 
 def busca_vistantes(fecha_desde, fecha_hasta, destino, dni):
     """ busca visitantes segun criterios """
-    pass
+
+    # MOMENTO ESQUIZO   
+    # variables = [dni, fecha_desde, fecha_hasta, destino]
+    # columnas = ["dni", "fechahora_in", "fechahora_out", "destino"]
+    #requisitos = ""
+    #for i in range(len(variables)):
+    #    if variables[i] == "":
+    #        break
+    #    else:
+    #        requisitos += f"ingresos_egresos.{columnas[i]} LIKE ?"
+    #        if i in range(0,3):
+    #            requisitos += " AND "
+
+    conn = sqlite3.connect('recepcion.db')
+    
+    q = f"""SELECT nombre, apellido, personas.dni 
+    FROM personas 
+    INNER JOIN ingresos_egresos 
+    ON personas.dni = ingresos_egresos.dni 
+    WHERE ingresos_egresos.dni LIKE ? AND ingresos_egresos.fechahora_in LIKE ? AND ingresos_egresos.fechahora_out LIKE ? AND ingresos_egresos.destino LIKE ?;
+    """
+    
+    print(q)
+
+    resu = conn.execute(q, (dni, fecha_desde, fecha_hasta, destino))
+    persona = resu.fetchone()
+
+    if persona:
+        print(persona)
+    else:
+        print("No se encotro nada")
+    
+    
+    conn.close()
 
 
 def iniciar():
@@ -146,26 +207,48 @@ def iniciar():
 
     conn.execute(qry)
 
+def menu():
+    opcion = str(input("""Ingrese 1, 2, 3 o 4 dependiendo de la acción que desee ejecutar:
+1. Check-In visitantes
+2. Check-Out visitantes
+3. Lista de personas hospedadas
+4. Consultar visitantes
+>>>"""))
+    while opcion not in "1234" :
+        opcion = int(input("La opción solo puede ser 1 o 2! Volver a intentar\n>>> "))
+
+    return opcion
+
+
+
 
 if __name__ == '__main__':
     iniciar()
+    opcion = menu()
 
-    """
-    p = Persona('28123456', 'Álavarez', 'Ana', '02352-456789')
+    if opcion == "1":
+        doc = input("Ingrese dni> ")
+        apellido = input("Igrese apellido> ")
+        nombre = input("nombre> ")
+        movil = input("móvil > ")
 
-    ingresa_visita(p)
-    """
+        p = Persona(doc, apellido, nombre, movil)
     
-    """
-    doc = input("Igrese dni> ")
-    apellido = input("Igrese apellido> ")
-    nombre = input("nombre> ")
-    movil = input("móvil > ")
+        ingresa_visita(p)
 
-    p = Persona(doc, apellido, nombre, movil)
+    elif opcion == "2":
+        dni_visitante = str(input("Ingrese el DNI de la persona\n>>>"))
+        egresa_visita(dni_visitante)
+
+    elif opcion == "3":
+        lista_visitantes_en_institucion()
+
+    else:
+        dni = input("Ingrese dni > ")
+        fecha_in = input('Ingrese fecha de ingreso > ')
+        fecha_out = input('Ingrese fecha de egreso > ')
+        destino = input("Ingrese destino > ")
+
+        busca_vistantes(fecha_in, fecha_out, destino, dni)
     
-    ingresa_visita(p)
-    """
-    
-    # lista_visitantes_en_institucion()
     
