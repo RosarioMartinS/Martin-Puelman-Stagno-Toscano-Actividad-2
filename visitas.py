@@ -164,12 +164,15 @@ def busca_vistantes(fecha_desde, fecha_hasta, destino, dni):
     FROM personas 
     INNER JOIN ingresos_egresos 
     ON personas.dni = ingresos_egresos.dni 
-    WHERE ingresos_egresos.dni LIKE ? AND ingresos_egresos.fechahora_in LIKE ? AND ingresos_egresos.fechahora_out LIKE ? AND ingresos_egresos.destino LIKE ?;
+    WHERE (ingresos_egresos.dni LIKE ? AND 
+            ingresos_egresos.fechahora_in LIKE ? AND 
+            (ingresos_egresos.fechahora_out LIKE ? OR ingresos_egresos.fechahora_out IS NULL) AND 
+            (ingresos_egresos.destino LIKE ? OR ingresos_egresos.destino IS NULL));
     """
-    
+
     print(q)
 
-    resu = conn.execute(q, (dni, fecha_desde, fecha_hasta, destino))
+    resu = conn.execute(q, (dni, F"{fecha_desde}%", f"{fecha_hasta}%", destino))
     persona = resu.fetchone()
 
     if persona:
