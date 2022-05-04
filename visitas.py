@@ -75,7 +75,7 @@ class Persona:
 
 
 
-def ingresa_visita(persona):
+def ingresa_visita(persona, unDestino):
     """Guarda los datos de una persona al ingresar"""
     conn = sqlite3.connect('recepcion.db')
     
@@ -101,7 +101,8 @@ def ingresa_visita(persona):
         
     m = f"""INSERT INTO ingresos_egresos (dni, fechahora_in, destino)
                 VALUES ('{persona.dni}',
-                        '{fecha}');"""
+                        '{fecha}',
+                        '{unDestino}');"""
 
     conn.execute(m)
     conn.commit()
@@ -113,7 +114,9 @@ def egresa_visita (dni):
     """Coloca fecha y hora de egreso al visitante con dni dado"""
 
     conn = sqlite3.connect('recepcion.db')
-    q = f"""SELECT fechahora_out FROM ingresos_egresos WHERE dni LIKE '{dni}'"""
+    q = f"""SELECT fechahora_out 
+            FROM ingresos_egresos 
+            WHERE dni LIKE '{dni}' AND fechahora_out IS NULL;"""
     resu = conn.execute(q)
 
     fecha_y_hora_actual = datetime.datetime.now().replace(microsecond=0).isoformat()
@@ -128,7 +131,7 @@ def egresa_visita (dni):
     conn.close()
 
 
-def lista_visitantes_en_institucion ():
+def lista_visitantes_en_institucion():
     """Devuelve una lista de objetos Persona presentes en la institución"""
     
     conn = sqlite3.connect('recepcion.db')
@@ -138,25 +141,17 @@ def lista_visitantes_en_institucion ():
 
     resu = conn.execute(q)
     
-    for fila in resu:       # Imprime las consultas
-        print(fila)
-    conn.close()        
+    if resu.fetchall():
+        for fila in resu:       # Imprime las consultas
+            print(fila)
+    else:
+        print("No hay visitantes en la institución!")  
+    
+    conn.close()      
 
 
 def busca_vistantes(fecha_desde, fecha_hasta, destino, dni):
     """ busca visitantes segun criterios """
-
-    # MOMENTO ESQUIZO   
-    # variables = [dni, fecha_desde, fecha_hasta, destino]
-    # columnas = ["dni", "fechahora_in", "fechahora_out", "destino"]
-    #requisitos = ""
-    #for i in range(len(variables)):
-    #    if variables[i] == "":
-    #        break
-    #    else:
-    #        requisitos += f"ingresos_egresos.{columnas[i]} LIKE ?"
-    #        if i in range(0,3):
-    #            requisitos += " AND "
 
     conn = sqlite3.connect('recepcion.db')
     
@@ -172,7 +167,7 @@ def busca_vistantes(fecha_desde, fecha_hasta, destino, dni):
 
     print(q)
 
-    resu = conn.execute(q, (dni, F"{fecha_desde}%", f"{fecha_hasta}%", destino))
+    resu = conn.execute(q, (dni, f"{fecha_desde}%", f"{fecha_hasta}%", destino))
     persona = resu.fetchone()
 
     if persona:
@@ -218,7 +213,7 @@ def menu():
 4. Consultar visitantes
 >>>"""))
     while opcion not in "1234" :
-        opcion = int(input("La opción solo puede ser 1 o 2! Volver a intentar\n>>> "))
+        opcion = int(input("La opción solo puede ser 1, 2,3 o 4! Volver a intentar\n>>> "))
 
     return opcion
 
@@ -234,10 +229,11 @@ if __name__ == '__main__':
         apellido = input("Igrese apellido> ")
         nombre = input("nombre> ")
         movil = input("móvil > ")
+        destino = input("destino > ")
 
         p = Persona(doc, apellido, nombre, movil)
     
-        ingresa_visita(p)
+        ingresa_visita(p, destino)
 
     elif opcion == "2":
         dni_visitante = str(input("Ingrese el DNI de la persona\n>>>"))
