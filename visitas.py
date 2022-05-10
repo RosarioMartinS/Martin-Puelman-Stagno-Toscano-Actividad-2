@@ -94,7 +94,6 @@ def ingresa_visita(persona, unDestino):
     resuM = conn.execute(m)
 
     salioDelHotel = resuM.fetchall()
-    print(personaConsultada)
 
     if personaConsultada != (None,) and (None,) in salioDelHotel:     # La persona esta en la base Y todavia no salio del hotel
         print("La persona ya está ingresada en el hotel y todavía no se fue!")
@@ -109,15 +108,19 @@ def ingresa_visita(persona, unDestino):
     
             conn.execute(q)
             conn.commit()
-            print("porfa")
-    
-        # Agrega datos de la persona a ingresos_egresos, ya sea por primera vez (persona no esta en la base) o nuevamente (persona ya esta en la base)
-        m = f"""INSERT INTO ingresos_egresos (dni, fechahora_in, destino)               
-                    VALUES ('{persona.dni}',
-                            '{fecha}',
-                            '{unDestino}');"""         
 
+        # Agrega datos de la persona a ingresos_egresos, ya sea por primera vez (persona no esta en la base) o nuevamente (persona ya esta en la base)
+        m = f"""INSERT INTO ingresos_egresos (dni, fechahora_in)               
+                    VALUES ('{persona.dni}',
+                            '{fecha}');"""
         conn.execute(m)
+
+        if unDestino != "":
+            d = f"""INSERT INTO ingresos_egresos (destino)               
+                        VALUES ('{unDestino}');"""         
+            conn.execute(d)
+        
+        print(m)
         conn.commit()
         print("Se completó existosamente el check in!")
                         
@@ -176,21 +179,31 @@ def busca_vistantes(fecha_desde, fecha_hasta, destino, dni):
                             f"ingresos_egresos.fechahora_out", 
                             f"ingresos_egresos.destino", 
                             f"ingresos_egresos.dni"]
+    
     c = ""
 
-    for i in range(len(criterios)):
-        if criterios[i] == "":
+    # FUNCION MAP PARA FIJARSE SI TODOS LOS ELEMENTOS SON "", EN TAL CASO, RETURN NO SE INGRESO VALORES
+    if criterios == ["%","%","",""]:
+        return print("No se ingresó ningun valor!")
+
+    i=0
+    while i < len(criterios):
+        print(i)
+        if criterios[i] == "" or criterios[i] == "%":
             criterios.pop(i)
-            break
-
-        if criterios[i] == "-%" or criterios[i] == "-":
-            c += f""" {criteriosFormatoSQL[i]} IS NULL AND """
-
-        elif criterios[i] != "%" and criterios[i] != "-":
+            criteriosFormatoSQL.pop(i)
+            
+        elif criterios[i] != "-%" or criterios[i] != "-":
             c += f""" {criteriosFormatoSQL[i]} LIKE '{criterios[i]}' AND """
+            i+=1
 
-        
-    c = c[:-5] # elimina el ultimo OR
+
+        elif criterios[i] == "-%" or criterios[i] == "-":
+            c += f""" {criteriosFormatoSQL[i]} IS NULL AND """
+            i+=1
+
+
+    c = c[:-5] # elimina el ultimo AND
 
     conn = sqlite3.connect('recepcion.db')
     
@@ -200,6 +213,7 @@ def busca_vistantes(fecha_desde, fecha_hasta, destino, dni):
     ON personas.dni = ingresos_egresos.dni 
     WHERE {c} ;
     """
+
     resu = conn.execute(q)
     persona = resu.fetchall()
 
