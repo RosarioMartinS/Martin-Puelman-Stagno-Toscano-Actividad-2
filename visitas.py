@@ -97,11 +97,14 @@ def ingresa_visita(persona):
                         '{persona.apellido}',
                         '{persona.movil}');"""
     
+        print(q)
+
         conn.execute(q)
         
     m = f"""INSERT INTO ingresos_egresos (dni, fechahora_in, destino)
                 VALUES ('{persona.dni}',
                         '{fecha}');"""
+
 
     conn.execute(m)
     conn.commit()
@@ -146,18 +149,6 @@ def lista_visitantes_en_institucion ():
 def busca_vistantes(fecha_desde, fecha_hasta, destino, dni):
     """ busca visitantes segun criterios """
 
-    # MOMENTO ESQUIZO   
-    # variables = [dni, fecha_desde, fecha_hasta, destino]
-    # columnas = ["dni", "fechahora_in", "fechahora_out", "destino"]
-    #requisitos = ""
-    #for i in range(len(variables)):
-    #    if variables[i] == "":
-    #        break
-    #    else:
-    #        requisitos += f"ingresos_egresos.{columnas[i]} LIKE ?"
-    #        if i in range(0,3):
-    #            requisitos += " AND "
-
     conn = sqlite3.connect('recepcion.db')
     
     q = f"""SELECT nombre, apellido, personas.dni 
@@ -180,6 +171,7 @@ def busca_vistantes(fecha_desde, fecha_hasta, destino, dni):
     else:
         print("No se encotro nada")
     
+
     
     conn.close()
 
@@ -209,6 +201,7 @@ def iniciar():
            );'''
 
     conn.execute(qry)
+
 
 def menu():
     opcion = str(input("""Ingrese 1, 2, 3 o 4 dependiendo de la acción que desee ejecutar:
@@ -255,3 +248,4 @@ if __name__ == '__main__':
         busca_vistantes(fecha_in, fecha_out, destino, dni)
     
     
+
