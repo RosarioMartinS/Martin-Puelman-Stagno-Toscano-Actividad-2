@@ -120,7 +120,6 @@ def ingresa_visita(persona, unDestino):
                         VALUES ('{unDestino}');"""         
             conn.execute(d)
         
-        print(m)
         conn.commit()
         print("Se completó existosamente el check in!")
                         
@@ -298,8 +297,8 @@ if __name__ == '__main__':
             lista_visitantes_en_institucion()
 
         elif opcion == '4':
-            print("-----------------------------------\nIngrese - si quiere buscar los visitantes que NO presenten información en ese campo, no ingrese nada en los campos que no desee buscar")
-            dni = input("Ingrese dni > ")
+            print("-----------------------------------\nIngrese - si quiere buscar los visitantes que NO presenten información en ese campo, no ingrese nada en los campos que no desee buscar. La fecha debe ser en formato AAAA-MM-DD")
+            dni = input("Ingrese dni > ") 
             fecha_in = input('Ingrese fecha de ingreso > ')
             fecha_out = input('Ingrese fecha de egreso > ')
             destino = input("Ingrese destino > ")
