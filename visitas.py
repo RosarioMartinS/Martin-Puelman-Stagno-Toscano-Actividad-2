@@ -1,3 +1,4 @@
+
 import sqlite3
 import datetime
 """
@@ -16,63 +17,6 @@ En la base de datos existen dos tablas:
 personas
 —------------------------
 dni	
-apellido
-nombre
-movil
-
-
-—------------------------
-ingresos_egresos
-—------------------------
-id
-dni
-fechahora_in
-fechahora_out
-destino
-
-
-Si la persona que ingresa ya tiene registrado su DNI (ej. un docente) no es necesario cargar los datos.
-
-Al retirarse, utilizando el DNI se registra fecha y hora de egreso (en formato ISO8601 básico  ej. 20220414T0913)
-
-Completar el módulo con las siguientes funciones:
-
-ingresa_visita(persona)
-
-Guarda los datos de una persona al ingresar
-
-
-egresa_visita (dni)
-Coloca fecha y hora de egreso al visitante con dni dado
-
-
-lista_visitantes_en_institucion ()
-
-Devuelve una lista de objetos Persona presentes en la institución 
-
- 
-busca_vistantes(fecha_desde, fecha_hasta, destino, dni)
-
-Devuelve una lista de objetos Persona de acuerdo a uno o varios criterios (rango de fechas, a qué ámbito ingresó y/o dni)
-
-"""
-
-"""
-Cada persona que ingresa debe quedar registrada con:
-
-apellido y nombre
-dni
-fecha y hora de ingreso (en formato ISO8601 básico  ej. 20220414T0913 → 14 de abril de 2022 a las 9 horas, 13 minutos)
-teléfono móvil 
-destino (a qué oficina se dirige: rectoría, secretaría, tesorería, etc.)
-
-
-En la base de datos existen dos tablas:
-
-—------------------------
-personas
-—------------------------
-dni    
 apellido
 nombre
 movil
@@ -158,11 +102,11 @@ def ingresa_visita(persona):
         
         print(q)
         conn.execute(q)
-    destino=str(input("¿Hacia dónde se dirige?: "))     
+        
     m = f"""INSERT INTO ingresos_egresos (dni, fechahora_in, destino)
                 VALUES ('{persona.dni}',
                         '{fecha}',
-                        '{destino}');"""
+                        '{p}');"""
     print(m)
     conn.execute(m)
     conn.commit()
@@ -172,7 +116,21 @@ def ingresa_visita(persona):
 
 def egresa_visita (dni):
     """Coloca fecha y hora de egreso al visitante con dni dado"""
-    pass
+
+    conn = sqlite3.connect('recepcion.db')
+    q = f"""SELECT fechahora_out FROM ingresos_egresos WHERE dni LIKE '{dni}'"""
+    resu = conn.execute(q)
+
+    fecha_y_hora_actual = datetime.datetime.now().replace(microsecond=0).isoformat()
+
+    if resu.fetchone() != None:
+        print("El usuario ya egresó")
+    else:
+        conn.execute(f"""UPDATE ingresos_egresos
+                SET fechahora_out = ?
+                WHERE dni = ? ;""", (fecha_y_hora_actual, dni))
+        conn.commit()
+    conn.close()
 
 
 def lista_visitantes_en_institucion ():
